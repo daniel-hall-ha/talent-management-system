@@ -1,0 +1,18 @@
+import type { Event } from '../../types';
+
+type Props = { events: Event[]; onSelect: (event: Event) => void };
+
+export function List({ events, onSelect }: Props) {
+  return <div className="event-list-scroll panel">
+    <table className="event-list">
+      <thead><tr><th>Title</th><th>Description</th><th>Start date</th><th>End date</th><th>Assigned talents</th></tr></thead>
+      <tbody>{events.length ? events.map(event => <tr key={event.id}>
+        <td><button className="event-list-title" onClick={() => onSelect(event)}><span className="event-list-dot" style={{ background: event.color }} />{event.title}</button></td>
+        <td>{event.description}</td>
+        <td>{event.startDate}</td>
+        <td>{event.endDate}</td>
+        <td>{event.talents.length ? event.talents.map(talent => talent.name).join(', ') : '—'}</td>
+      </tr>) : <tr><td colSpan={5} className="event-list-empty">No events this month</td></tr>}</tbody>
+    </table>
+  </div>;
+}

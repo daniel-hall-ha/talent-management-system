@@ -1,0 +1,52 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Role {
+  id          String   @id @default(cuid())
+  name        String   @unique
+  description String?
+  permissions String[]
+  system      Boolean  @default(false)
+  createAccount Boolean @default(false)
+  users       User[]
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model User {
+  id           String   @id @default(cuid())
+  name         String
+  email        String?  @unique
+  phone        String?
+  passwordHash String?
+  active       Boolean  @default(true)
+  roleId       String
+  role         Role     @relation(fields: [roleId], references: [id])
+  assignedEvents Event[] @relation("EventTalents")
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+model Event {
+  id             String   @id @default(cuid())
+  title          String
+  description    String
+  color          String   @default("#6979d4")
+  startDate      String
+  endDate        String
+  keyPoints      String[]
+  categories     String[] @default([])
+  talentDeliverables Json @default("{}")
+  talentSubmissionDates Json @default("{}")
+  details        String   @default("")
+  cdKeysCipher   String?
+  talents        User[]   @relation("EventTalents")
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+}
