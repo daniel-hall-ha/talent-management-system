@@ -7,7 +7,9 @@
     "build": "prisma generate && tsc",
     "start": "node dist/server.js",
     "db:up": "node prisma/db-up.mjs",
-    "db:migrate": "prisma migrate dev",
+    "db:migrate": "prisma migrate deploy",
+    "db:migrate:dev": "prisma migrate dev",
+    "db:import-data": "tsx prisma/import-current-data.ts",
     "db:seed": "node prisma/seed.ts"
   },
   "dependencies": {

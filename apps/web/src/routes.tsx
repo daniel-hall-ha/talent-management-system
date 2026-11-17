@@ -1,14 +1,14 @@
-import { useEffect, useState } from 'react';
+import { lazy, Suspense, useEffect, useState } from 'react';
 import type { Me } from './types';
 import { AppShell } from './layout/AppShell';
-import { CalendarPage } from './calendar/page';
-import { NewEventPage } from './calendar/new/page';
-import { ImportEventsPage } from './calendar/new/import';
-import { EventPage } from './calendar/[id]/page';
-import { UsersPage } from './users/page';
-import { RolesPage } from './roles/page';
-import { TrackerPage } from './tracker/page';
-import { MarketTalentsPage } from './market-talents/page';
+const CalendarPage = lazy(() => import('./calendar/page').then(module => ({ default: module.CalendarPage })));
+const NewEventPage = lazy(() => import('./calendar/new/page').then(module => ({ default: module.NewEventPage })));
+const ImportEventsPage = lazy(() => import('./calendar/new/import').then(module => ({ default: module.ImportEventsPage })));
+const EventPage = lazy(() => import('./calendar/[id]/page').then(module => ({ default: module.EventPage })));
+const UsersPage = lazy(() => import('./users/page').then(module => ({ default: module.UsersPage })));
+const RolesPage = lazy(() => import('./roles/page').then(module => ({ default: module.RolesPage })));
+const TrackerPage = lazy(() => import('./tracker/page').then(module => ({ default: module.TrackerPage })));
+const MarketTalentsPage = lazy(() => import('./market-talents/page').then(module => ({ default: module.MarketTalentsPage })));
 
 export type RoutePath = '/tracker' | '/calendar' | '/add' | '/import' | `/view?id=${string}` | `/edit?id=${string}` | '/users' | '/roles' | '/talents-database';
 
@@ -54,7 +54,7 @@ export function Routes({ me, onLogout }: { me: Me; onLogout: () => void }) {
   if (!path) return <div className="loading">No pages are available for this role.</div>;
   const eventRoute = path.startsWith('/view?id=') || path.startsWith('/edit?id=') ? new URL(path, window.location.origin) : null;
   const eventId = eventRoute?.searchParams.get('id');
-  return <AppShell me={me} path={path} navigate={navigate} onLogout={onLogout}>
+  return <AppShell me={me} path={path} navigate={navigate} onLogout={onLogout}><Suspense fallback={<div className="loading">Loading page…</div>}>
     {path === '/calendar' && <CalendarPage can={can} navigate={navigate} />}
     {path === '/tracker' && <TrackerPage can={can} />}
     {path === '/add' && <NewEventPage can={can} navigate={navigate} />}
@@ -63,5 +63,5 @@ export function Routes({ me, onLogout }: { me: Me; onLogout: () => void }) {
     {path === '/users' && <UsersPage me={me} can={can} />}
     {path === '/roles' && <RolesPage can={can} />}
     {path === '/talents-database' && <MarketTalentsPage can={can} />}
-  </AppShell>;
+  </Suspense></AppShell>;
 }

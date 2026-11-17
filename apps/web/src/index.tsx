@@ -7,9 +7,12 @@ import { Routes } from './routes';
 export function App() {
   const [me, setMe] = useState<Me | null>(null);
   const [ready, setReady] = useState(false);
+  const [slow, setSlow] = useState(false);
 
   useEffect(() => {
-    api<Me>('/me').then(setMe).catch(() => {}).finally(() => setReady(true));
+    const timer = window.setTimeout(() => setSlow(true), 3000);
+    api<Me>('/me').then(setMe).catch(() => {}).finally(() => { window.clearTimeout(timer); setReady(true); });
+    return () => window.clearTimeout(timer);
   }, []);
 
   async function logout() {
@@ -17,7 +20,7 @@ export function App() {
     setMe(null);
   }
 
-  if (!ready) return <div className="loading">Loading…</div>;
+  if (!ready) return <div className="loading">{slow ? 'Connecting to the server… The first request may take about a minute after inactivity.' : 'Loading…'}</div>;
   if (!me) return <Login onLogin={setMe} />;
   return <Routes me={me} onLogout={logout} />;
 }

@@ -11,7 +11,7 @@ export function List({ events, onSelect }: Props) {
         <td>{event.description}</td>
         <td>{event.startDate}</td>
         <td>{event.endDate}</td>
-        <td>{event.talents.length ? event.talents.map(talent => talent.name).join(', ') : '—'}</td>
+        <td>{event.talents.length ? <div className="event-list-talents">{event.talents.map(talent => <span className="event-list-talent-chip" key={talent.id}>{talent.name}</span>)}</div> : '—'}</td>
       </tr>) : <tr><td colSpan={5} className="event-list-empty">No events this month</td></tr>}</tbody>
     </table>
   </div>;
