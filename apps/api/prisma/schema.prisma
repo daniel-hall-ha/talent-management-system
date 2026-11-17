@@ -23,6 +23,7 @@ model User {
   id           String   @id @default(cuid())
   name         String
   email        String?  @unique
+  loginId      String?  @unique
   phone        String?
   passwordHash String?
   active       Boolean  @default(true)
@@ -44,9 +45,28 @@ model Event {
   categories     String[] @default([])
   talentDeliverables Json @default("{}")
   talentSubmissionDates Json @default("{}")
+  talentAssignments Json @default("{}")
   details        String   @default("")
   cdKeysCipher   String?
   talents        User[]   @relation("EventTalents")
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
+}
+
+model MarketTalent {
+  id                 String   @id @default(cuid())
+  name               String
+  tags               String[] @default([])
+  facebookPage       String   @default("")
+  facebookFollowers  Int?
+  tiktokChannel      String   @default("")
+  tiktokFollowers    Int?
+  youtubeChannel     String   @default("")
+  youtubeFollowers   Int?
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+}
+
+model MarketTalentTag {
+  name String @id
 }

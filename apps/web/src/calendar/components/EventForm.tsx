@@ -1,9 +1,10 @@
 import { useEffect, useState } from 'react';
 import { RichTextEditor } from './RichTextEditor';
-import { categoryOptions, type Category, type CdKeys, type Event, type Talent } from '../../types';
+import { type CdKeys, type Event, type Talent, type TalentAssignment } from '../../types';
 import { iso, today } from '../../lib/dates';
 import { api } from '../../lib/api';
 import { TalentPicker } from './TalentPicker';
+import { TalentAssignments } from './TalentAssignments';
 
 type Props = {
   event: Event | null;
@@ -20,10 +21,8 @@ export function EventForm({ event, canEditKeys, onClose, onSave, busy, error }: 
   const [color, setColor] = useState(event?.color || '#6979d4');
   const [startDate, setStartDate] = useState(event?.startDate || iso(today.getFullYear(), today.getMonth(), today.getDate()));
   const [endDate, setEndDate] = useState(event?.endDate || iso(today.getFullYear(), today.getMonth(), today.getDate()));
-  const [talentDeliverables, setTalentDeliverables] = useState<Record<string, Category[]>>(event?.talentDeliverables || {});
-  const [talentSubmissionDates, setTalentSubmissionDates] = useState<Record<string, string>>(event?.talentSubmissionDates || {});
+  const [talentAssignments, setTalentAssignments] = useState<Record<string, TalentAssignment[]>>(event?.talentAssignments || {});
   const [talents, setTalents] = useState<Talent[]>(event?.talents || []);
-  const [openDeliverables, setOpenDeliverables] = useState<string | null>(null);
   const [details, setDetails] = useState(event?.details || '');
   const [giveawayKeys, setGiveawayKeys] = useState('');
   const [talentKeys, setTalentKeys] = useState<Record<string, string>>({});
@@ -42,29 +41,11 @@ export function EventForm({ event, canEditKeys, onClose, onSave, busy, error }: 
   }, [event?.id, canEditKeys]);
 
   const splitKeys = (value: string) => value.split(',').map(key => key.trim()).filter(Boolean);
-  const submissionDates: string[] = [];
-  if (startDate && endDate && startDate <= endDate) {
-    const cursor = new Date(`${startDate}T00:00:00Z`);
-    const last = new Date(`${endDate}T00:00:00Z`);
-    while (cursor <= last) {
-      submissionDates.push(cursor.toISOString().slice(0, 10));
-      cursor.setUTCDate(cursor.getUTCDate() + 1);
-    }
-  }
-
-  function toggleDeliverable(id: string, category: Category) {
-    setTalentDeliverables(current => {
-      const selected = current[id] || [];
-      return { ...current, [id]: selected.includes(category) ? selected.filter(item => item !== category) : [...selected, category] };
-    });
-  }
-
   function submit(formEvent: React.FormEvent) {
     formEvent.preventDefault();
     onSave({
       title, description, color, startDate, endDate,
-      talentDeliverables: Object.fromEntries(talents.map(talent => [talent.id, talentDeliverables[talent.id] || []])),
-      talentSubmissionDates: Object.fromEntries(talents.map(talent => [talent.id, talentSubmissionDates[talent.id]]).filter(([, value]) => typeof value === 'string' && submissionDates.includes(value))),
+      talentAssignments: Object.fromEntries(talents.map(talent => [talent.id, (talentAssignments[talent.id] || []).filter(row => row.deliverable)])),
       talentIds: talents.map(talent => talent.id), details,
       ...(canEditKeys && (!event || keysChanged) ? { cdKeys: { giveaway: splitKeys(giveawayKeys), talents: Object.fromEntries(talents.map(talent => [talent.id, splitKeys(talentKeys[talent.id] || '')]).filter(([, keys]) => (keys as string[]).length)) } } : {}),
     });
@@ -79,25 +60,7 @@ export function EventForm({ event, canEditKeys, onClose, onSave, busy, error }: 
       <label>End date <em>*</em><input type="date" required min={startDate} value={endDate} onChange={e => setEndDate(e.target.value)} /></label>
       <div className="event-form-wide talent-assignment-section">
         <TalentPicker selected={talents} onChange={setTalents} />
-        {talents.length > 0 && <div className="cd-key-table" role="table" aria-label="Talent deliverables">
-          <div className="cd-key-row cd-key-header" role="row"><span role="columnheader">Talent</span><span role="columnheader">Deliverables</span><span role="columnheader">Submission date</span></div>
-          {talents.map(talent => <div className="cd-key-row" role="row" key={talent.id}>
-            <span role="cell">{talent.name}</span>
-            <div role="cell" className="category-field">
-              <button type="button" className="category-trigger" aria-label={`Deliverables for ${talent.name}`} aria-expanded={openDeliverables === talent.id} onClick={() => setOpenDeliverables(openDeliverables === talent.id ? null : talent.id)}>
-                {(talentDeliverables[talent.id] || []).length ? <span className="selected-categories">{talentDeliverables[talent.id].map(category => <span className="category-chip" key={category}>{category}</span>)}</span> : <span className="category-placeholder">Select deliverables</span>}
-                <span className="category-chevron">▾</span>
-              </button>
-              {openDeliverables === talent.id && <div className="category-options">{categoryOptions.map(category => <label key={category}>
-                <input type="checkbox" checked={(talentDeliverables[talent.id] || []).includes(category)} onChange={() => toggleDeliverable(talent.id, category)} />{category}
-              </label>)}</div>}
-            </div>
-            <div role="cell"><select aria-label={`Submission date for ${talent.name}`} value={submissionDates.includes(talentSubmissionDates[talent.id]) ? talentSubmissionDates[talent.id] : ''} onChange={e => setTalentSubmissionDates(current => ({ ...current, [talent.id]: e.target.value }))} disabled={!submissionDates.length}>
-              <option value="">Select date</option>
-              {submissionDates.map(date => <option value={date} key={date}>{date}</option>)}
-            </select></div>
-          </div>)}
-        </div>}
+        <TalentAssignments talents={talents} assignments={talentAssignments} onChange={setTalentAssignments} startDate={startDate} endDate={endDate} />
       </div>
       <div className="event-form-wide event-details">
         <span className="field-title">Details</span>

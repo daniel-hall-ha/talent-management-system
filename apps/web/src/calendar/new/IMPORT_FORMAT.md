@@ -6,22 +6,22 @@ The ZIP must contain `events.csv` at its top level and one self-contained HTML b
 
 Required: `title`, `description`, `start_date`, `end_date`, `brief_file`.
 
-Optional: `color` (defaults to `#6979d4`), `categories`, `talent_names`, `talent_emails`, `deliverables`, `submission_dates`, `key_points`, `cd_keys`.
+Optional: `color` (defaults to `#6979d4`), `categories`, `talent_names`, `talent_emails`, `assignments`, `key_points`, `cd_keys`. The older `deliverables` and `submission_dates` columns remain supported.
 
 - Dates use `YYYY-MM-DD`.
 - `categories`, `talent_names`, `talent_emails`, and `key_points` use semicolon-separated values.
 - Categories: `Livestream`, `Highlight`, `Short Video`, `Others`.
 - `talent_names` contains semicolon-separated talent names. Use this when talents have no email. If omitted, `talent_emails` is used instead. Identifiers must match active users with an Exclusive Talents or Non-exclusive Talents role (existing Talents users remain supported).
-- `deliverables` is a JSON object mapping talent name or email to a category array.
-- `submission_dates` is a JSON object mapping talent name or email to a date within the event.
+- `assignments` is a JSON object mapping talent name or email to an array of deliverable/date pairs, for example `{"Dee":[{"deliverable":"Livestream","submissionDate":"2026-12-02"},{"deliverable":"Highlight","submissionDate":"2026-12-03"}]}`. Dates may be empty strings when unset.
+- Legacy `deliverables` and `submission_dates` columns are still accepted. A legacy date is applied to each deliverable for that talent.
 - `cd_keys` is an optional JSON object with `giveaway` (string array) and `talents` (talent-name-or-email-to-string-array object). Importing keys requires CD key edit permission.
 - `brief_file` points to a `.html` file inside the ZIP, such as `briefs/launch.html`.
 
 Example `events.csv`:
 
 ```csv
-title,description,start_date,end_date,color,categories,talent_names,talent_emails,deliverables,submission_dates,key_points,brief_file
-Launch stream,Stream the launch,2026-12-01,2026-12-03,#6979d4,Livestream;Highlight,Talent Name,,"{""talent@example.com"":[""Livestream"",""Highlight""]}","{""talent@example.com"":""2026-12-02""}",Introduce product;Show gameplay,briefs/launch.html
+title,description,start_date,end_date,color,categories,talent_names,assignments,key_points,brief_file
+Launch stream,Stream the launch,2026-12-01,2026-12-03,#6979d4,Livestream;Highlight,Dee,"{""Dee"":[{""deliverable"":""Livestream"",""submissionDate"":""2026-12-02""},{""deliverable"":""Highlight"",""submissionDate"":""2026-12-03""}]}",Introduce product;Show gameplay,briefs/launch.html
 ```
 
 The preview validates all rows. Confirm creates the batch in one database transaction; if validation fails, nothing is saved. Limits: 25 MB ZIP, 500 events, 500 KB per brief, 20 MB combined brief HTML.

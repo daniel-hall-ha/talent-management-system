@@ -46,5 +46,5 @@ export function EventPage({ eventId, mode, can, navigate }: { eventId: string; m
   if (loading) return <div className="loading">Loading event…</div>;
   if (!event) return <div className="event-page"><div className="form-error">{error || 'Event not found'}</div><button className="secondary" onClick={() => navigate('/calendar')}>Back to calendar</button></div>;
   if (mode === 'view') return <><EventDetail event={event} can={can} onClose={() => navigate('/calendar')} onEdit={() => navigate(`/edit?id=${encodeURIComponent(eventId)}`)} onDelete={remove} />{error && <div className="form-error">{error}</div>}</>;
-  return <EventForm event={event} canEditKeys={can('CD_KEY_EDIT')} onClose={() => navigate('/calendar')} onSave={save} busy={busy} error={error} />;
+  return <EventForm event={event} canEditKeys={can('CD_KEY_EDIT') && can('CD_KEY_VIEW_ALL')} onClose={() => navigate('/calendar')} onSave={save} busy={busy} error={error} />;
 }

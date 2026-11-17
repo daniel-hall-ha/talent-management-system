@@ -4,7 +4,7 @@ import { api } from '../lib/api';
 import type { Me } from '../types';
 
 export function Login({ onLogin }: { onLogin: (me: Me) => void }) {
-  const [email, setEmail] = useState('');
+  const [loginId, setLoginId] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
@@ -14,7 +14,7 @@ export function Login({ onLogin }: { onLogin: (me: Me) => void }) {
     setBusy(true);
     setError('');
     try {
-      await api('/login', { method: 'POST', body: JSON.stringify({ email, password }) });
+      await api('/login', { method: 'POST', body: JSON.stringify({ loginId, password }) });
       onLogin(await api<Me>('/me'));
     } catch (cause) {
       setError((cause as Error).message);
@@ -27,7 +27,7 @@ export function Login({ onLogin }: { onLogin: (me: Me) => void }) {
     <div className="login-brand"><div className="brand-icon"><CalendarDays size={24} /></div><h1>Talent Management</h1></div>
     <p>Sign in to your workspace</p>
     <form onSubmit={submit}>
-      <label>Email<input type="email" required value={email} onChange={event => setEmail(event.target.value)} placeholder="you@company.com" /></label>
+      <label>Login ID<input type="text" required autoComplete="username" value={loginId} onChange={event => setLoginId(event.target.value)} placeholder="Enter your login ID" /></label>
       <label>Password<input type="password" required value={password} onChange={event => setPassword(event.target.value)} placeholder="Enter your password" /></label>
       {error && <div className="form-error">{error}</div>}
       <button className="primary full" disabled={busy}>{busy ? 'Signing in…' : 'Sign in'}</button>

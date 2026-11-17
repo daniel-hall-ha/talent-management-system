@@ -1,12 +1,14 @@
 import type { ReactNode } from 'react';
-import { CalendarDays, LogOut, ShieldCheck, UsersRound } from 'lucide-react';
+import { CalendarDays, ClipboardList, LogOut, ShieldCheck, UsersRound, Database } from 'lucide-react';
 import type { Me } from '../types';
 import type { RoutePath } from '../routes';
 
 const menu = [
-  { path: '/calendar', title: 'SOW Calendar', permission: 'SOW_VIEW', icon: CalendarDays },
-  { path: '/users', title: 'User Management', permission: 'USER_VIEW', icon: UsersRound },
-  { path: '/roles', title: 'User Roles', permission: 'ROLE_VIEW', icon: ShieldCheck },
+  { path: '/calendar', title: 'SOW Calendar', permissions: ['SOW_VIEW','SOW_VIEW_ALL','SOW_EDIT'], icon: CalendarDays },
+  { path: '/tracker', title: 'SOW Tracker', permissions: ['TRACKER_VIEW','TRACKER_VIEW_ALL','TRACKER_EDIT'], icon: ClipboardList },
+  { path: '/talents-database', title: 'Talents Database', permissions: ['TALENT_DB_VIEW'], icon: Database },
+  { path: '/users', title: 'User Management', permissions: ['USER_VIEW'], icon: UsersRound },
+  { path: '/roles', title: 'User Roles', permissions: ['ROLE_VIEW'], icon: ShieldCheck },
 ] as const;
 
 type Props = {
@@ -23,7 +25,7 @@ export function AppShell({ me, path, navigate, onLogout, children }: Props) {
     <aside className="sidebar">
       <div className="brand"><div className="brand-icon"><CalendarDays size={21} /></div><div><strong>Talent Management</strong><small>Workspace</small></div></div>
       <div className="nav-label">WORKSPACE</div>
-      <nav>{menu.filter(item => me.permissions.includes(item.permission)).map(({ path: itemPath, title: itemTitle, icon: Icon }) =>
+      <nav>{menu.filter(item => item.permissions.some(permission => me.permissions.includes(permission))).map(({ path: itemPath, title: itemTitle, icon: Icon }) =>
         <a key={itemPath} href={itemPath} className={path === itemPath ? 'nav active' : 'nav'} onClick={event => { event.preventDefault(); navigate(itemPath); }}><Icon size={18} />{itemTitle}</a>
       )}</nav>
       <div className="sidebar-bottom"><div className="avatar">{me.name.slice(0, 1).toUpperCase()}</div><div className="identity"><strong>{me.name}</strong><small>{me.role}</small></div><button className="icon-button" aria-label="Log out" onClick={onLogout}><LogOut size={18} /></button></div>

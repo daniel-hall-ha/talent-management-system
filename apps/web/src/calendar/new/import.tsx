@@ -4,7 +4,7 @@ import Papa from 'papaparse';
 import { X } from 'lucide-react';
 import { api } from '../../lib/api';
 import type { RoutePath } from '../../routes';
-import type { Category } from '../../types';
+import type { Category, TalentAssignment } from '../../types';
 import { categoryOptions } from '../../types';
 import { BriefFrame } from '../components/BriefFrame';
 
@@ -12,7 +12,7 @@ type Talent = { id: string; name: string; email: string | null };
 type ImportEvent = {
   title: string; description: string; color: string; startDate: string; endDate: string;
   categories: Category[]; keyPoints: string[]; talentIds: string[];
-  talentDeliverables: Record<string, Category[]>; talentSubmissionDates: Record<string, string>;
+  talentAssignments: Record<string, TalentAssignment[]>;
   details: string; cdKeys?: { giveaway: string[]; talents: Record<string, string[]> };
 };
 type PreviewRow = { event?: ImportEvent; talentNames: string[]; errors: string[]; line: number };
@@ -73,19 +73,35 @@ async function readImport(file: File, talents: Talent[], canEditKeys: boolean): 
     if (new Set(assigned.filter(Boolean).map(talent => talent!.id)).size !== assigned.filter(Boolean).length) errors.push('Duplicate talent');
     identifiers.forEach((identifier, position) => { if (!assigned[position]) errors.push(`Talent not found: ${identifier}`); });
     const assignedIds = new Set(assigned.filter((talent): talent is Talent => Boolean(talent)).map(talent => talent.id));
-    const deliverablesByEmail = parseObject(row.deliverables || '', 'Deliverables', errors);
-    const datesByEmail = parseObject(row.submission_dates || '', 'Submission dates', errors);
-    const talentDeliverables: Record<string, Category[]> = {};
-    const talentSubmissionDates: Record<string, string> = {};
-    for (const [email, value] of Object.entries(deliverablesByEmail)) {
-      const talent = byIdentifier.get(email.toLowerCase());
-      if (!talent || !assignedIds.has(talent.id) || !Array.isArray(value) || value.some(item => !categoryOptions.includes(item as Category))) errors.push(`Invalid deliverables for ${email}`);
-      else talentDeliverables[talent.id] = value as Category[];
-    }
-    for (const [email, value] of Object.entries(datesByEmail)) {
-      const talent = byIdentifier.get(email.toLowerCase());
-      if (!talent || !assignedIds.has(talent.id) || typeof value !== 'string' || !validDate(value) || value < startDate || value > endDate) errors.push(`Invalid submission date for ${email}`);
-      else talentSubmissionDates[talent.id] = value;
+    const talentAssignments: Record<string, TalentAssignment[]> = {};
+    if ((row.assignments || '').trim()) {
+      const byTalent = parseObject(row.assignments, 'Assignments', errors);
+      for (const [identifier, value] of Object.entries(byTalent)) {
+        const talent = byIdentifier.get(identifier.toLowerCase());
+        if (!talent || !assignedIds.has(talent.id) || !Array.isArray(value)) { errors.push(`Invalid assignments for ${identifier}`); continue; }
+        const assignments: TalentAssignment[] = [];
+        for (const item of value) {
+          if (!item || typeof item !== 'object' || !categoryOptions.includes(item.deliverable as Category) ||
+            (item.submissionDate && (typeof item.submissionDate !== 'string' || !validDate(item.submissionDate) || item.submissionDate < startDate || item.submissionDate > endDate))) {
+            errors.push(`Invalid deliverable or submission date for ${identifier}`);
+          } else assignments.push({ deliverable: item.deliverable as Category, submissionDate: item.submissionDate || '' });
+        }
+        talentAssignments[talent.id] = assignments;
+      }
+    } else {
+      const legacyDeliverables = parseObject(row.deliverables || '', 'Deliverables', errors);
+      const legacyDates = parseObject(row.submission_dates || '', 'Submission dates', errors);
+      for (const [identifier, value] of Object.entries(legacyDeliverables)) {
+        const talent = byIdentifier.get(identifier.toLowerCase());
+        if (!talent || !assignedIds.has(talent.id) || !Array.isArray(value) || value.some(item => !categoryOptions.includes(item as Category))) errors.push(`Invalid deliverables for ${identifier}`);
+        else talentAssignments[talent.id] = (value as Category[]).map(deliverable => ({ deliverable, submissionDate: '' }));
+      }
+      for (const [identifier, value] of Object.entries(legacyDates)) {
+        const talent = byIdentifier.get(identifier.toLowerCase());
+        if (!talent || !assignedIds.has(talent.id) || typeof value !== 'string' || !validDate(value) || value < startDate || value > endDate) errors.push(`Invalid submission date for ${identifier}`);
+        else if (talentAssignments[talent.id]?.length) talentAssignments[talent.id] = talentAssignments[talent.id].map(item => ({ ...item, submissionDate: value }));
+        else errors.push(`Submission date for ${identifier} has no deliverable`);
+      }
     }
     const briefPath = (row.brief_file || '').trim();
     if (!safePath(briefPath) || !briefPath.toLowerCase().endsWith('.html')) errors.push('Brief path must point to an HTML file inside the ZIP');
@@ -115,7 +131,7 @@ async function readImport(file: File, talents: Talent[], canEditKeys: boolean): 
     results.push({ line: index + 2, errors, talentNames: assigned.filter((talent): talent is Talent => Boolean(talent)).map(talent => talent.name), event: {
       title, description, color, startDate, endDate, categories, keyPoints: split(row.key_points || ''),
       talentIds: assigned.filter((talent): talent is Talent => Boolean(talent)).map(talent => talent.id),
-      talentDeliverables, talentSubmissionDates, details, ...(cdKeys ? { cdKeys } : {}),
+      talentAssignments, details, ...(cdKeys ? { cdKeys } : {}),
     } });
   }
   if (totalBriefSize > 20_000_000) throw new Error('Combined briefs must be 20 MB or smaller');
@@ -138,7 +154,7 @@ export function ImportEventsPage({ can, navigate }: { can: (permission: string) 
     setBusy(true); setError(''); setRows(null); setFileName(file.name);
     try {
       const talents = await api<Talent[]>('/import/talents');
-      setRows(await readImport(file, talents, can('CD_KEY_EDIT')));
+      setRows(await readImport(file, talents, can('CD_KEY_EDIT') && can('CD_KEY_VIEW_ALL')));
     } catch (cause) { setError((cause as Error).message); }
     finally { setBusy(false); }
   }
@@ -154,7 +170,7 @@ export function ImportEventsPage({ can, navigate }: { can: (permission: string) 
   return <div className="event-page import-page"><div className="page-head"><h1>Import Events</h1></div>
     {!rows ? <div className="import-upload"><label>Upload .zip file<input type="file" accept=".zip,application/zip" disabled={busy} onChange={event => { const file = event.target.files?.[0]; if (file) void upload(file); }} /></label><a className="secondary sample-download" href="/sample-events-import.zip" download="sample-events-import.zip">Download sample ZIP</a></div> : <>
       <p>{fileName} · {rows.length} event{rows.length === 1 ? '' : 's'}</p>
-      <div className="import-table-wrap panel"><table className="event-list import-table"><thead><tr><th>Row</th><th>Title</th><th>Description</th><th>Dates</th><th>Color</th><th>Categories</th><th>Talents</th><th>Deliverables</th><th>Submission dates</th><th>Key points</th><th>Brief</th><th>CD keys</th><th>Status</th></tr></thead><tbody>{rows.map(row => { const event = row.event!; return <tr key={row.line}><td>{row.line}</td><td>{event.title}</td><td>{event.description}</td><td>{event.startDate} → {event.endDate}</td><td><span className="event-list-dot" style={{ background: event.color }} />{event.color}</td><td>{event.categories.join(', ') || '—'}</td><td>{row.talentNames.join(', ') || '—'}</td><td>{Object.entries(event.talentDeliverables).map(([id, categories]) => `${row.talentNames[event.talentIds.indexOf(id)]}: ${categories.join(', ')}`).join('; ') || '—'}</td><td>{Object.entries(event.talentSubmissionDates).map(([id, date]) => `${row.talentNames[event.talentIds.indexOf(id)]}: ${date}`).join('; ') || '—'}</td><td>{event.keyPoints.join('; ') || '—'}</td><td><span className="brief-excerpt">{briefPreview(event.details)}</span> <button type="button" className="brief-see-more" onClick={() => setOpenBrief(event)}>See more</button></td><td>{event.cdKeys ? 'Included' : '—'}</td><td className={row.errors.length ? 'import-invalid' : 'import-valid'}>{row.errors.length ? row.errors.join('; ') : 'Ready'}</td></tr>; })}</tbody></table></div>
+      <div className="import-table-wrap panel"><table className="event-list import-table"><thead><tr><th>Row</th><th>Title</th><th>Description</th><th>Dates</th><th>Color</th><th>Categories</th><th>Talents</th><th>Deliverables</th><th>Submission dates</th><th>Key points</th><th>Brief</th><th>CD keys</th><th>Status</th></tr></thead><tbody>{rows.map(row => { const event = row.event!; return <tr key={row.line}><td>{row.line}</td><td>{event.title}</td><td>{event.description}</td><td>{event.startDate} → {event.endDate}</td><td><span className="event-list-dot" style={{ background: event.color }} />{event.color}</td><td>{event.categories.join(', ') || '—'}</td><td>{row.talentNames.join(', ') || '—'}</td><td>{Object.entries(event.talentAssignments).flatMap(([id, assignments]) => assignments.map(item => `${row.talentNames[event.talentIds.indexOf(id)]}: ${item.deliverable}`)).join('; ') || '—'}</td><td>{Object.entries(event.talentAssignments).flatMap(([id, assignments]) => assignments.filter(item => item.submissionDate).map(item => `${row.talentNames[event.talentIds.indexOf(id)]} (${item.deliverable}): ${item.submissionDate}`)).join('; ') || '—'}</td><td>{event.keyPoints.join('; ') || '—'}</td><td><span className="brief-excerpt">{briefPreview(event.details)}</span> <button type="button" className="brief-see-more" onClick={() => setOpenBrief(event)}>See more</button></td><td>{event.cdKeys ? 'Included' : '—'}</td><td className={row.errors.length ? 'import-invalid' : 'import-valid'}>{row.errors.length ? row.errors.join('; ') : 'Ready'}</td></tr>; })}</tbody></table></div>
       <div className="form-actions"><button className="secondary" onClick={() => navigate('/calendar')}>Cancel</button><button className="primary" disabled={busy || rows.some(row => row.errors.length)} onClick={confirm}>{busy ? 'Importing…' : 'Confirm'}</button></div>
     </>}
     {openBrief && <div className="overlay" onMouseDown={() => setOpenBrief(null)}><div className="modal import-brief-modal" role="dialog" aria-modal="true" aria-label={`${openBrief.title} brief`} onMouseDown={event => event.stopPropagation()}><button type="button" className="close" aria-label="Close brief" onClick={() => setOpenBrief(null)}><X size={19} /></button><h2>{openBrief.title}</h2><BriefFrame html={openBrief.details} title={`${openBrief.title} full brief`} /></div></div>}

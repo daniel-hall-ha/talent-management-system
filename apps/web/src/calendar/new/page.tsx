@@ -20,5 +20,5 @@ export function NewEventPage({ can, navigate }: { can: (permission: string) => b
     }
   }
 
-  return <EventForm event={null} canEditKeys={can('CD_KEY_EDIT')} onClose={() => navigate('/calendar')} onSave={save} busy={busy} error={error} />;
+  return <EventForm event={null} canEditKeys={can('CD_KEY_EDIT') && can('CD_KEY_VIEW_ALL')} onClose={() => navigate('/calendar')} onSave={save} busy={busy} error={error} />;
 }
