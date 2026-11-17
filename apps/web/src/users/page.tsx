@@ -65,7 +65,7 @@ export function UsersPage({ me, can }: { me: Me; can: (permission: string) => bo
       {can('USER_ADD') && <button className="primary" onClick={() => { setEditing(null); setFormOpen(true); }}><Plus size={17} /> New User</button>}
     </div></div>
     <ErrorBanner error={formOpen ? '' : error} onDismiss={() => setError('')} />
-    <div className="panel"><table><thead><tr><th>Name</th><th>Login ID</th><th>Email</th><th>Phone</th><th>Role</th><th>Status</th><th></th></tr></thead><tbody>
+    <div className="panel users-table-wrap"><table className="users-table"><thead><tr><th>Name</th><th>Login ID</th><th>Email</th><th>Phone</th><th>Role</th><th>Status</th><th></th></tr></thead><tbody>
       {users.map(user => <tr key={user.id}>
         <td><b>{user.name}</b></td><td>{user.loginId || '—'}</td><td>{user.email || '—'}</td><td>{user.phone || '—'}</td><td>{user.role.name}</td>
         <td><span className={`status ${user.active ? 'good' : 'muted'}`}>{user.active ? 'Active' : 'Disabled'}</span></td>
