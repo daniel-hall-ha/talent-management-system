@@ -4,7 +4,7 @@ import { config } from '../common/config.js';
 import { prisma } from '../common/db.js';
 import type { AuthRequest } from '../common/http.js';
 
-export const allPermissions = ['SOW_VIEW_ALL','SOW_VIEW','SOW_ADD','SOW_EDIT','SOW_DELETE','TRACKER_VIEW_ALL','TRACKER_VIEW','TRACKER_EDIT','USER_VIEW','USER_ADD','USER_EDIT','USER_DELETE','ROLE_VIEW','ROLE_ADD','ROLE_EDIT','ROLE_DELETE','CD_KEY_VIEW_ALL','CD_KEY_VIEW','CD_KEY_EDIT','TALENT_DB_VIEW','TALENT_DB_ADD','TALENT_DB_EDIT'] as const;
+export const allPermissions = ['SOW_VIEW_ALL','SOW_VIEW','SOW_ADD','SOW_EDIT','SOW_DELETE','TRACKER_VIEW_ALL','TRACKER_VIEW','TRACKER_EDIT','USER_VIEW','USER_ADD','USER_EDIT','USER_DELETE','ROLE_VIEW','ROLE_ADD','ROLE_EDIT','ROLE_DELETE','CD_KEY_VIEW_ALL','CD_KEY_VIEW','CD_KEY_EDIT','TALENT_DB_VIEW','TALENT_DB_ADD','TALENT_DB_EDIT','TALENT_DB_DELETE'] as const;
 
 export const auth = (req: AuthRequest, res: Response, next: NextFunction) => Promise.resolve((async () => {
   const token = req.cookies.session;

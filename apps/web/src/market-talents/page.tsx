@@ -1,15 +1,14 @@
 import { useEffect, useRef, useState } from 'react';
-import { Check, Edit2, Plus, Upload, X } from 'lucide-react';
+import { Check, Download, Edit2, Plus, Trash2, Upload, X } from 'lucide-react';
 import { api } from '../lib/api';
 import { ErrorBanner } from '../components/ErrorBanner';
 import { Empty } from '../components/Empty';
-import { csvHeaders, parseCsv, sampleCsv } from './csv';
-import { SelectDropdown } from '../calendar/components/SelectDropdown';
+import { csvHeaders, exportCsv, parseCsv, sampleCsv } from './csv';
+import { TagPicker, tagLabel } from './TagPicker';
 
 type Talent = { id: string; name: string; tags: string[]; facebookPage: string; facebookFollowers: number | null; tiktokChannel: string; tiktokFollowers: number | null; youtubeChannel: string; youtubeFollowers: number | null };
 type Form = Omit<Talent, 'id' | 'facebookFollowers' | 'tiktokFollowers' | 'youtubeFollowers'> & { facebookFollowers: string; tiktokFollowers: string; youtubeFollowers: string };
 const blank: Form = { name: '', tags: [], facebookPage: '', facebookFollowers: '', tiktokChannel: '', tiktokFollowers: '', youtubeChannel: '', youtubeFollowers: '' };
-const label = (tag: string) => tag.toLowerCase().split('_').map(part => part[0].toUpperCase() + part.slice(1)).join(' ');
 const formOf = (talent: Talent): Form => ({ ...talent, facebookFollowers: talent.facebookFollowers?.toString() || '', tiktokFollowers: talent.tiktokFollowers?.toString() || '', youtubeFollowers: talent.youtubeFollowers?.toString() || '' });
 function payload(form: Form) {
   const count = (value: string) => value.trim() === '' ? null : Number(value);
@@ -20,20 +19,17 @@ function payload(form: Form) {
   return { ...form, name: form.name.trim(), facebookFollowers: count(form.facebookFollowers), tiktokFollowers: count(form.tiktokFollowers), youtubeFollowers: count(form.youtubeFollowers) };
 }
 
-function Tags({ value, options, onChange }: { value: string[]; options: string[]; onChange: (tags: string[]) => void }) {
-  return <div className="market-tag-editor"><div className="market-tags">{value.map(tag => <span className="market-tag" key={tag}>{label(tag)}<button type="button" aria-label={`Remove ${label(tag)}`} onClick={() => onChange(value.filter(item => item !== tag))}><X size={12} /></button></span>)}</div>
-    <SelectDropdown label="Add tag" value="" placeholder="Add tag…" options={options.filter(tag => !value.includes(tag)).map(tag => ({ value: tag, label: label(tag) }))} onChange={tag => onChange([...value, tag])} /></div>;
-}
-
 export function MarketTalentsPage({ can }: { can: (permission: string) => boolean }) {
   const [talents, setTalents] = useState<Talent[]>([]);
   const [tags, setTags] = useState<string[]>([]);
+  const [filterTags, setFilterTags] = useState<string[]>([]);
   const [editing, setEditing] = useState<string | null>(null);
   const [form, setForm] = useState<Form>(blank);
   const [error, setError] = useState('');
   const [notice, setNotice] = useState('');
   const [busy, setBusy] = useState(false);
   const upload = useRef<HTMLInputElement>(null);
+  const visibleTalents = filterTags.length ? talents.filter(talent => filterTags.every(tag => talent.tags.includes(tag))) : talents;
   async function load() { const data = await api<{ talents: Talent[]; tags: string[] }>('/market-talents'); setTalents(data.talents); setTags(data.tags); }
   useEffect(() => { void load().catch(cause => setError((cause as Error).message)); }, []);
   function start(id: string | null) { setEditing(id || 'new'); setForm(id ? formOf(talents.find(talent => talent.id === id)!) : { ...blank, tags: [] }); setError(''); setNotice(''); }
@@ -44,6 +40,14 @@ export function MarketTalentsPage({ can }: { can: (permission: string) => boolea
       const value = payload(form);
       await api(`/market-talents${editing === 'new' ? '' : `/${editing}`}`, { method: editing === 'new' ? 'POST' : 'PUT', body: JSON.stringify(value) });
       setEditing(null); await load();
+    } catch (cause) { setError((cause as Error).message); } finally { setBusy(false); }
+  }
+  async function remove(talent: Talent) {
+    if (!window.confirm(`Delete ${talent.name} from Talents Database?`)) return;
+    setBusy(true); setError('');
+    try {
+      await api(`/market-talents/${talent.id}`, { method: 'DELETE' });
+      await load();
     } catch (cause) { setError((cause as Error).message); } finally { setBusy(false); }
   }
   async function importFile(file?: File) {
@@ -65,17 +69,19 @@ export function MarketTalentsPage({ can }: { can: (permission: string) => boolea
     } catch (cause) { setError((cause as Error).message); } finally { setBusy(false); if (upload.current) upload.current.value = ''; }
   }
   function downloadSample() { const url = URL.createObjectURL(new Blob([sampleCsv()], { type: 'text/csv;charset=utf-8' })); const link = document.createElement('a'); link.href = url; link.download = 'talents-database-sample.csv'; link.click(); URL.revokeObjectURL(url); }
+  function downloadFiltered() { const url = URL.createObjectURL(new Blob([exportCsv(visibleTalents)], { type: 'text/csv;charset=utf-8' })); const link = document.createElement('a'); link.href = url; link.download = 'talents-database.csv'; link.click(); URL.revokeObjectURL(url); }
   function cells(value: Form, editable: boolean) {
     const fields: (keyof Form)[] = ['name','facebookPage','facebookFollowers','tiktokChannel','tiktokFollowers','youtubeChannel','youtubeFollowers'];
     return <><td>{editable ? <input aria-label="Name" value={value.name} onChange={event => set('name', event.target.value)} /> : <b>{value.name}</b>}</td>
-      <td>{editable ? <Tags value={value.tags} options={tags} onChange={next => set('tags', next)} /> : <div className="market-tags">{value.tags.map(tag => <span className="market-tag" key={tag}>{label(tag)}</span>)}</div>}</td>
+      <td>{editable ? <TagPicker value={value.tags} options={tags} onChange={next => set('tags', next)} /> : <div className="market-tags">{value.tags.map(tag => <span className="market-tag" key={tag}>{tagLabel(tag)}</span>)}</div>}</td>
       {fields.slice(1).map(field => <td key={field}>{editable ? <input aria-label={field} type={field.endsWith('Followers') ? 'number' : 'text'} min={field.endsWith('Followers') ? 0 : undefined} step={field.endsWith('Followers') ? 1 : undefined} value={value[field] as string} onChange={event => set(field, event.target.value)} /> : field.endsWith('Followers') ? (value[field] === '' ? '—' : Number(value[field]).toLocaleString()) : value[field] ? <a href={/^https?:\/\//i.test(value[field] as string) ? value[field] as string : `https://${value[field]}`} target="_blank" rel="noreferrer">{value[field]}</a> : '—'}</td>)}
     </>;
   }
   return <><div className="page-head"><h1>Talents Database</h1><div className="head-actions">{can('TALENT_DB_ADD') && <><button className="secondary" onClick={downloadSample}>Download sample CSV</button><input ref={upload} className="sr-only" type="file" accept=".csv,text/csv" onChange={event => void importFile(event.target.files?.[0])} /><button className="secondary" disabled={busy || !!editing} onClick={() => upload.current?.click()}><Upload size={16} /> Batch Import</button><button className="primary" disabled={!!editing} onClick={() => start(null)}><Plus size={16} /> Add Talent</button></>}</div></div>
     <ErrorBanner error={error} onDismiss={() => setError('')} />{notice && <p className="market-notice">{notice}</p>}
+    <div className="market-filter"><label>Filter by tags <TagPicker value={filterTags} options={tags} onChange={setFilterTags} placeholder="Select tags…" /></label><button className="secondary" type="button" disabled={!visibleTalents.length} onClick={downloadFiltered}><Download size={16} /> Download CSV</button></div>
     <div className="panel market-table-wrap"><table className="data-table"><thead><tr><th>No.</th><th>Name</th><th>Tags</th><th>Facebook Page</th><th>Follower Count</th><th>TikTok Channel</th><th>Follower Count</th><th>YouTube Channel</th><th>Follower Count</th><th>Action</th></tr></thead><tbody>
-      {editing === 'new' && <tr className="market-edit-row"><td>New</td>{cells(form, true)}<td className="row-actions"><button disabled={busy} title="Save" onClick={() => void save()}><Check size={17} /></button><button title="Cancel" onClick={() => setEditing(null)}><X size={17} /></button></td></tr>}
-      {talents.map((talent, index) => <tr key={talent.id} className={editing === talent.id ? 'market-edit-row' : ''}><td>{index + 1}</td>{cells(editing === talent.id ? form : formOf(talent), editing === talent.id)}<td className="row-actions">{editing === talent.id ? <><button disabled={busy} title="Save" onClick={() => void save()}><Check size={17} /></button><button title="Cancel" onClick={() => setEditing(null)}><X size={17} /></button></> : can('TALENT_DB_EDIT') && <button disabled={!!editing} title="Edit talent" onClick={() => start(talent.id)}><Edit2 size={16} /></button>}</td></tr>)}
-    </tbody></table>{!talents.length && editing !== 'new' && <Empty text="No talents in the database yet" />}</div></>;
+      {editing === 'new' && <tr className="market-edit-row"><td>#</td>{cells(form, true)}<td className="row-actions"><button disabled={busy} title="Save" onClick={() => void save()}><Check size={17} /></button><button title="Cancel" onClick={() => setEditing(null)}><X size={17} /></button></td></tr>}
+      {visibleTalents.map((talent, index) => <tr key={talent.id} className={editing === talent.id ? 'market-edit-row' : ''}><td>{index + 1}</td>{cells(editing === talent.id ? form : formOf(talent), editing === talent.id)}<td className="row-actions">{editing === talent.id ? <><button disabled={busy} title="Save" onClick={() => void save()}><Check size={17} /></button><button title="Cancel" onClick={() => setEditing(null)}><X size={17} /></button></> : <>{can('TALENT_DB_EDIT') && <button disabled={busy || !!editing} title="Edit talent" aria-label={`Edit ${talent.name}`} onClick={() => start(talent.id)}><Edit2 size={16} /></button>}{can('TALENT_DB_DELETE') && <button disabled={busy || !!editing} title="Delete talent" aria-label={`Delete ${talent.name}`} onClick={() => void remove(talent)}><Trash2 size={16} /></button>}</>}</td></tr>)}
+    </tbody></table>{!visibleTalents.length && editing !== 'new' && <Empty text={filterTags.length ? 'No talents match the selected tags' : 'No talents in the database yet'} />}</div></>;
 }

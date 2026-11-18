@@ -12,7 +12,7 @@ const sections = [
   { label: 'CD Keys', access: { viewAll: 'CD_KEY_VIEW_ALL', view: 'CD_KEY_VIEW', edit: 'CD_KEY_EDIT' } },
   { label: 'User Management', access: { view: 'USER_VIEW', add: 'USER_ADD', edit: 'USER_EDIT', delete: 'USER_DELETE' } },
   { label: 'User Roles', access: { view: 'ROLE_VIEW', add: 'ROLE_ADD', edit: 'ROLE_EDIT', delete: 'ROLE_DELETE' } },
-  { label: 'Talents Database', access: { view: 'TALENT_DB_VIEW', add: 'TALENT_DB_ADD', edit: 'TALENT_DB_EDIT' } },
+  { label: 'Talents Database', access: { view: 'TALENT_DB_VIEW', add: 'TALENT_DB_ADD', edit: 'TALENT_DB_EDIT', delete: 'TALENT_DB_DELETE' } },
 ] as const;
 
 type Props = { role: Role | null; onClose: () => void; onSave: (value: unknown) => void; busy: boolean; error: string };

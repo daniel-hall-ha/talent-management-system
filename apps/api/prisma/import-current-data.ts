@@ -13,7 +13,7 @@ const container = process.env.IMPORT_POSTGRES_CONTAINER || 'postgres';
 const localUrl = new URL(process.env.IMPORT_LOCAL_URL || 'postgresql://postgres:postgres@localhost:5432/postgres');
 const targetUrl = process.env.DATABASE_URL;
 const apply = process.argv.includes('--apply');
-const defaultTags = new Set(['LIFESTYLE','TECH','GAMING','SINGER','DANCER','ACTOR','VLOGGER','FOOD_VLOGGER','BEAUTY','EDUCATION','MEDICINE','AESTHETIC']);
+const defaultTags = new Set(['LIFESTYLE','TECH','GAMING','SINGER','DANCER','ACTOR','VLOGGER','FOOD_VLOGGER','BEAUTY','EDUCATION','MEDICINE','AESTHETIC','COSPLAYER','ONLINE_MEDIA','COMEDY','MODEL','INFLUENCER','AUTOMOTIVE','PHOTOGRAPHER']);
 
 function docker(args: string[], input?: Buffer) {
   const result = spawnSync('docker', ['exec', ...(input ? ['-i'] : []), container, ...args], {

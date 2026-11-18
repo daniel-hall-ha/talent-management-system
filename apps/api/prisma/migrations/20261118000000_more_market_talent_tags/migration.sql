@@ -1,0 +1,9 @@
+INSERT INTO "MarketTalentTag" ("name") VALUES
+  ('COSPLAYER'),
+  ('ONLINE_MEDIA'),
+  ('COMEDY'),
+  ('MODEL'),
+  ('INFLUENCER'),
+  ('AUTOMOTIVE'),
+  ('PHOTOGRAPHER')
+ON CONFLICT ("name") DO NOTHING;

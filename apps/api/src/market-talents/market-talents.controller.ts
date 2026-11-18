@@ -37,9 +37,19 @@ export async function update(req: AuthRequest, res: Response) {
   if (!exists) return res.status(404).json({ error: 'Talent not found' });
   return res.json(await prisma.marketTalent.update({ where: { id: exists.id }, data: await validated(req.body) }));
 }
+export async function remove(req: AuthRequest, res: Response) {
+  const result = await prisma.marketTalent.deleteMany({ where: { id: req.params.id } });
+  if (!result.count) return res.status(404).json({ error: 'Talent not found' });
+  return res.json({ deleted: true });
+}
 export async function batchImport(req: AuthRequest, res: Response) {
   const rows = z.array(input).min(1).max(1000).parse(req.body?.rows);
-  const data = await Promise.all(rows.map(validated));
+  const data = rows.map(row => ({ ...row, tags: [...new Set(row.tags)] }));
+  const requested = [...new Set(data.flatMap(row => row.tags))];
+  const known = await prisma.marketTalentTag.findMany({ where: { name: { in: requested } }, select: { name: true } });
+  const available = new Set(known.map(tag => tag.name));
+  const missing = requested.filter(tag => !available.has(tag));
+  if (missing.length) return res.status(400).json({ error: `Unknown tags: ${missing.join(', ')}` });
   await prisma.marketTalent.createMany({ data });
   return res.status(201).json({ created: data.length });
 }

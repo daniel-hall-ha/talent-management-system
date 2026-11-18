@@ -1,5 +1,10 @@
 export const csvHeaders = ['Name','Tags','Facebook Page','Facebook Follower Count','TikTok Channel','TikTok Follower Count','YouTube Channel','YouTube Follower Count'];
 
+export function exportCsv(rows: Array<{ name: string; tags: string[]; facebookPage: string; facebookFollowers: number | null; tiktokChannel: string; tiktokFollowers: number | null; youtubeChannel: string; youtubeFollowers: number | null }>) {
+  const cell = (value: string | number | null) => `"${String(value ?? '').replace(/"/g, '""')}"`;
+  return '\uFEFF' + [csvHeaders.map(cell).join(','), ...rows.map(row => [row.name, row.tags.join(';'), row.facebookPage, row.facebookFollowers, row.tiktokChannel, row.tiktokFollowers, row.youtubeChannel, row.youtubeFollowers].map(cell).join(','))].join('\r\n') + '\r\n';
+}
+
 export function parseCsv(source: string): string[][] {
   const rows: string[][] = [];
   let row: string[] = [], value = '', quoted = false;
