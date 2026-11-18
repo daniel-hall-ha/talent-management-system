@@ -14,7 +14,7 @@ export async function listTrackerRows(month: string, selfId?: string): Promise<T
   const last = new Date(Date.UTC(year, number, 0)).toISOString().slice(0, 10);
   const rows = await prisma.deliverable.findMany({
     where: { event: { startDate: { lte: last }, endDate: { gte: first } }, ...(selfId ? { talentId: selfId } : {}) },
-    orderBy: [{ event: { startDate: 'asc' } }, { event: { title: 'asc' } }, { sortOrder: 'asc' }],
+    orderBy: [{ event: { startDate: 'desc' } }, { event: { endDate: 'desc' } }, { event: { title: 'asc' } }, { sortOrder: 'asc' }],
     include: { event: { select: { title: true, description: true, startDate: true, endDate: true } }, talent: { select: { name: true } } },
   });
   return rows.map(row => ({

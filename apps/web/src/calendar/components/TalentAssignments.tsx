@@ -48,7 +48,14 @@ export function TalentAssignments({ talents, assignments, onChange, startDate, e
             options={[{ value: '', label: 'No date' }, ...(row.submissionDate && !dates.includes(row.submissionDate) ? [{ value: row.submissionDate, label: `${row.submissionDate} (outside event dates)` }] : []), ...dates.map(date => ({ value: date, label: date }))]}
             onChange={value => update(talent.id, rows.map((item, i) => i === index ? { ...item, submissionDate: value } : item))}
           /></div>
-          <div role="cell"><input type="date" aria-label={`Publishing date ${index + 1} for ${talent.name}`} disabled={!row.deliverable} value={row.publishingDate || ''} onChange={event => update(talent.id, rows.map((item, i) => i === index ? { ...item, publishingDate: event.target.value } : item))} /></div>
+          <div role="cell"><SelectDropdown
+            label={`Publishing date ${index + 1} for ${talent.name}`}
+            value={row.publishingDate || ''}
+            placeholder="Select date"
+            disabled={!row.deliverable || !dates.length}
+            options={[{ value: '', label: 'No date' }, ...(row.publishingDate && !dates.includes(row.publishingDate) ? [{ value: row.publishingDate, label: `${row.publishingDate} (outside event dates)` }] : []), ...dates.map(date => ({ value: date, label: date }))]}
+            onChange={value => update(talent.id, rows.map((item, i) => i === index ? { ...item, publishingDate: value } : item))}
+          /></div>
           <div className="talent-assignment-action" role="cell">{index === 0
             ? <button type="button" aria-label={`Add deliverable for ${talent.name}`} title="Add deliverable" onClick={() => update(talent.id, [...rows, { deliverable: '', submissionDate: '', publishingDate: '' }])}><Plus size={17} /></button>
             : <button type="button" aria-label={`Remove deliverable ${index + 1} for ${talent.name}`} title="Remove deliverable" onClick={() => update(talent.id, rows.filter((_, i) => i !== index))}><X size={16} /></button>}

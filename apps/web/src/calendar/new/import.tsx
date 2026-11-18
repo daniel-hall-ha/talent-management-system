@@ -83,7 +83,7 @@ async function readImport(file: File, talents: Talent[], canEditKeys: boolean): 
         for (const item of value) {
           if (!item || typeof item !== 'object' || !categoryOptions.includes(item.deliverable as Category) ||
             (item.submissionDate && (typeof item.submissionDate !== 'string' || !validDate(item.submissionDate) || item.submissionDate < startDate || item.submissionDate > endDate)) ||
-            (item.publishingDate && (typeof item.publishingDate !== 'string' || !validDate(item.publishingDate)))) {
+            (item.publishingDate && (typeof item.publishingDate !== 'string' || !validDate(item.publishingDate) || item.publishingDate < startDate || item.publishingDate > endDate))) {
             errors.push(`Invalid deliverable or date for ${identifier}`);
           } else assignments.push({ deliverable: item.deliverable as Category, submissionDate: item.submissionDate || '', publishingDate: item.publishingDate || '' });
         }

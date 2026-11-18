@@ -13,7 +13,8 @@ export const eventInput = z.object({
   talentIds: z.array(z.string().min(1)).default([]), details: z.string().max(500_000).default(''),
   cdKeys: z.object({ giveaway: z.array(z.string().trim().min(1)).default([]), talents: z.record(z.string(), z.array(z.string().trim().min(1))) }).optional(),
 }).refine(value => value.startDate <= value.endDate, { message: 'End date must be on or after start date' })
-  .refine(value => Object.values(value.talentAssignments).flat().every(item => !item.submissionDate || item.submissionDate >= value.startDate && item.submissionDate <= value.endDate), { message: 'Submission dates must be between the start and end dates' });
+  .refine(value => Object.values(value.talentAssignments).flat().every(item => !item.submissionDate || item.submissionDate >= value.startDate && item.submissionDate <= value.endDate), { message: 'Submission dates must be between the start and end dates' })
+  .refine(value => Object.values(value.talentAssignments).flat().every(item => !item.publishingDate || item.publishingDate >= value.startDate && item.publishingDate <= value.endDate), { message: 'Publishing dates must be between the start and end dates' });
 export type EventInput = z.infer<typeof eventInput>;
 
 export async function validTalentIds(ids: string[]) {
