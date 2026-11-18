@@ -1,3 +1,4 @@
+import 'dotenv/config';
 import { existsSync } from 'node:fs';
 import http from 'node:http';
 import https from 'node:https';
