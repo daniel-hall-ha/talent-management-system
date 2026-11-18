@@ -21,7 +21,18 @@ Requires Node.js 22.18 or newer for direct TypeScript execution in development a
 4. Run `npm run db:up` to create the blank database named by `DATABASE_URL` if it does not already exist. This command does not migrate or seed it. Then run `npm run db:migrate` and `npm run db:seed`.
 5. Run `npm run dev`, then open `http://localhost:5173`.
 
-The API listens on port 3001 by default. For a frontend on another origin, set `WEB_ORIGIN` in `apps/api/.env`.
+The API listens on port 3001 by default. During development, Vite proxies `/api` requests to it.
+
+## Production on Render
+
+Deploy two **Web Services** from this repository, each with its Root Directory left blank:
+
+| Service | Build command | Start command | Required environment |
+| --- | --- | --- | --- |
+| API | `npm ci --include=dev && npm run build -w apps/api` | `npm run start -w apps/api` | `DATABASE_URL`, `SESSION_SECRET`, `CD_KEY_ENCRYPTION_KEY` |
+| Web | `npm ci --include=dev && npm run build -w apps/web` | `npm run start -w apps/web` | `BACKEND_URL=https://your-api-service.onrender.com` |
+
+Render supplies `PORT` to both services. Set `NODE_ENV=production` if it is not already set. The Web Service serves the built Vite app and forwards `/api` to the separate API Web Service. The browser uses only the Web Service URL, so the session cookie is first-party. The frontend no longer uses `VITE_BACKEND_URL`. Run database migrations before deploying a version that needs them. Replace the old Static Site with the Web Service after testing login.
 
 ## Security notes
 
