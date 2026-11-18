@@ -8,13 +8,13 @@ export async function list(req: AuthRequest, res: Response) {
   const month = z.string().regex(/^\d{4}-\d{2}$/).parse(req.query.month);
   const selfId = req.actor?.permissions.includes('SOW_VIEW_ALL') ? undefined : req.actor?.id;
   const events = await listEvents(month, selfId);
-  return res.json(selfId ? events.map(event => ({ ...event, talents: event.talents.filter(talent => talent.id === selfId), talentAssignments: { [selfId]: (event.talentAssignments as Record<string, unknown>)[selfId] || [] } })) : events);
+  return res.json(events);
 }
 export async function detail(req: AuthRequest, res: Response) {
   const selfId = req.actor?.permissions.includes('SOW_VIEW_ALL') ? undefined : req.actor?.id;
   const event = await getEvent(req.params.id, selfId);
   if (!event) return res.status(404).json({ error: 'Event not found' });
-  return res.json(selfId ? { ...event, talents: event.talents.filter(talent => talent.id === selfId), talentAssignments: { [selfId]: (event.talentAssignments as Record<string, unknown>)[selfId] || [] } } : event);
+  return res.json(event);
 }
 export async function keys(req: AuthRequest, res: Response) {
   const event = await getEventKeys(req.params.id);

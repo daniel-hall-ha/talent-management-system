@@ -32,7 +32,7 @@ export function EventDetail({ event, can, onClose, onEdit, onDelete }: Props) {
     {event.talents.length > 0 && <><h3>Assigned talents</h3><div className="detail-categories">{event.talents.map(talent => {
       const assignments = event.talentAssignments?.[talent.id] || [];
       const labels = numberedDeliverables(assignments);
-      return <div className="talent-detail-row" key={talent.id}><strong>{talent.name}</strong><div className="talent-detail-assignments">{assignments.map((assignment, index) => <span className="talent-detail-assignment" key={assignment.id || index}><span className="category-chip">{labels[index]}</span>{assignment.submissionDate && <span className="talent-submission-date">Submission: {assignment.submissionDate}</span>}</span>)}</div></div>;
+      return <div className="talent-detail-row" key={talent.id}><strong>{talent.name}</strong><div className="talent-detail-assignments">{assignments.map((assignment, index) => <span className="talent-detail-assignment" key={assignment.id || index}><span className="category-chip">{labels[index]}</span>{assignment.submissionDate && <span className="talent-submission-date">Submission: {assignment.submissionDate}</span>}{assignment.publishingDate && <span className="talent-submission-date">Publishing: {assignment.publishingDate}</span>}</span>)}</div></div>;
     })}</div></>}
     <h3>Description</h3><p>{event.description}</p>
     {event.details && <><h3>Details</h3><BriefFrame html={event.details} title={`${event.title} brief`} expand /></>}

@@ -3,7 +3,8 @@ import { randomBytes } from 'node:crypto';
 import { readFileSync } from 'node:fs';
 import { spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
-import { PrismaClient, type Prisma } from '@prisma/client';
+import { PrismaClient } from '@prisma/client';
+import { assignmentRows, readAssignments } from '../src/events/assignment.helpers.js';
 
 // One-time importer for the root current-data PostgreSQL custom dump.
 // Preview: npm run db:import-data    Apply: npm run db:import-data -- --apply
@@ -40,14 +41,16 @@ async function main() {
     created = true;
     docker(['pg_restore', '-U', 'postgres', '-d', tempName, '--no-owner', '--no-privileges', '--exit-on-error'], readFileSync(dumpPath));
 
-    const [users, events, marketTalents, sourceTags, targetRoles] = await Promise.all([
+    const [users, events, legacyAssignments, marketTalents, sourceTags, targetRoles] = await Promise.all([
       source.user.findMany({ where: { role: { system: false } }, include: { role: true }, orderBy: { id: 'asc' } }),
       source.event.findMany({ include: { talents: { include: { role: true } } }, orderBy: { id: 'asc' } }),
+      source.$queryRaw<Array<{ id: string; talentAssignments: unknown }>>`SELECT id, "talentAssignments" FROM "Event"`,
       source.marketTalent.findMany({ orderBy: { id: 'asc' } }),
       source.marketTalentTag.findMany(),
       target.role.findMany(),
     ]);
     const rolesByName = new Map(targetRoles.map(role => [role.name, role]));
+    const assignmentsByEvent = new Map(legacyAssignments.map(event => [event.id, event.talentAssignments]));
     for (const user of users) {
       const role = rolesByName.get(user.role.name);
       if (!role) throw new Error(`Supabase is missing role "${user.role.name}". Create/seed it first; this importer does not copy roles.`);
@@ -71,14 +74,12 @@ async function main() {
       }
       for (const event of events) {
         const { talents, ...fields } = event;
-        const data = {
-          ...fields,
-          talentDeliverables: fields.talentDeliverables as Prisma.InputJsonValue,
-          talentSubmissionDates: fields.talentSubmissionDates as Prisma.InputJsonValue,
-          talentAssignments: fields.talentAssignments as Prisma.InputJsonValue,
-        };
+        const data = fields;
         const connections = talents.map(talent => ({ id: talent.id }));
         await tx.event.upsert({ where: { id: event.id }, update: { ...data, talents: { set: connections } }, create: { ...data, talents: { connect: connections } } });
+        await tx.deliverable.deleteMany({ where: { eventId: event.id } });
+        const deliverables = assignmentRows(readAssignments(assignmentsByEvent.get(event.id)));
+        if (deliverables.length) await tx.deliverable.createMany({ data: deliverables.map(row => ({ ...row, eventId: event.id })) });
       }
       for (const talent of marketTalents) await tx.marketTalent.upsert({ where: { id: talent.id }, update: talent, create: talent });
     }, { timeout: 120000 });

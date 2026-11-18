@@ -42,6 +42,8 @@ export function TrackerModal({ row, deliverableLabel, mode, busy, error, onClose
       <div className="tracker-modal-field"><span>Description</span><p>{row.description}</p></div>
       <div className="tracker-modal-field"><span>Talent</span><strong>{row.talent}</strong></div>
       <div className="tracker-modal-field"><span>Deliverable</span><span className="category-chip">{deliverableLabel}</span></div>
+      <div className="tracker-modal-field"><span>Submission date</span><strong>{row.submissionDate || '—'}</strong></div>
+      <div className="tracker-modal-field"><span>Publishing date</span><strong>{row.publishingDate || '—'}</strong></div>
       <div className="tracker-modal-field"><span>Status</span>{editing
         ? <SelectDropdown label="Status" value={status} options={[{ value: 'Pending', label: 'Pending' }, { value: 'Done', label: 'Done' }]} placeholder="Select status" onChange={value => setStatus(value as 'Pending' | 'Done')} />
         : <span className={`tracker-status ${row.status.toLowerCase()}`}>{row.status}</span>}</div>

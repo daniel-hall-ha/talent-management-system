@@ -26,10 +26,10 @@ export function TalentAssignments({ talents, assignments, onChange, startDate, e
   if (!talents.length) return null;
   return <div className="talent-assignments" role="table" aria-label="Talent deliverables">
     <div className="talent-assignment-line talent-assignment-header" role="row">
-      <span role="columnheader">Talent</span><span role="columnheader">Deliverable</span><span role="columnheader">Submission date</span><span role="columnheader">Action</span>
+      <span role="columnheader">Talent</span><span role="columnheader">Deliverable</span><span role="columnheader">Submission date</span><span role="columnheader">Publishing date</span><span role="columnheader">Action</span>
     </div>
     {talents.map(talent => {
-      const rows = assignments[talent.id]?.length ? assignments[talent.id] : [{ deliverable: '', submissionDate: '' } as TalentAssignment];
+      const rows = assignments[talent.id]?.length ? assignments[talent.id] : [{ deliverable: '', submissionDate: '', publishingDate: '' } as TalentAssignment];
       return <div className="talent-assignment-group" role="rowgroup" key={talent.id}>
         {rows.map((row, index) => <div className="talent-assignment-line" role="row" key={index}>
           <span className="talent-assignment-name" role="cell">{index === 0 ? talent.name : <span className="sr-only">{talent.name}, deliverable {index + 1}</span>}</span>
@@ -38,7 +38,7 @@ export function TalentAssignments({ talents, assignments, onChange, startDate, e
             value={row.deliverable}
             placeholder="Select deliverable"
             options={[{ value: '', label: 'No deliverable' }, ...categoryOptions.map(category => ({ value: category, label: category }))]}
-            onChange={value => update(talent.id, rows.map((item, i) => i === index ? { ...item, deliverable: value as TalentAssignment['deliverable'], submissionDate: value ? item.submissionDate : '' } : item))}
+            onChange={value => update(talent.id, rows.map((item, i) => i === index ? { ...item, deliverable: value as TalentAssignment['deliverable'], submissionDate: value ? item.submissionDate : '', publishingDate: value ? item.publishingDate : '' } : item))}
           /></div>
           <div role="cell"><SelectDropdown
             label={`Submission date ${index + 1} for ${talent.name}`}
@@ -48,8 +48,9 @@ export function TalentAssignments({ talents, assignments, onChange, startDate, e
             options={[{ value: '', label: 'No date' }, ...(row.submissionDate && !dates.includes(row.submissionDate) ? [{ value: row.submissionDate, label: `${row.submissionDate} (outside event dates)` }] : []), ...dates.map(date => ({ value: date, label: date }))]}
             onChange={value => update(talent.id, rows.map((item, i) => i === index ? { ...item, submissionDate: value } : item))}
           /></div>
+          <div role="cell"><input type="date" aria-label={`Publishing date ${index + 1} for ${talent.name}`} disabled={!row.deliverable} value={row.publishingDate || ''} onChange={event => update(talent.id, rows.map((item, i) => i === index ? { ...item, publishingDate: event.target.value } : item))} /></div>
           <div className="talent-assignment-action" role="cell">{index === 0
-            ? <button type="button" aria-label={`Add deliverable for ${talent.name}`} title="Add deliverable" onClick={() => update(talent.id, [...rows, { deliverable: '', submissionDate: '' }])}><Plus size={17} /></button>
+            ? <button type="button" aria-label={`Add deliverable for ${talent.name}`} title="Add deliverable" onClick={() => update(talent.id, [...rows, { deliverable: '', submissionDate: '', publishingDate: '' }])}><Plus size={17} /></button>
             : <button type="button" aria-label={`Remove deliverable ${index + 1} for ${talent.name}`} title="Remove deliverable" onClick={() => update(talent.id, rows.filter((_, i) => i !== index))}><X size={16} /></button>}
           </div>
         </div>)}

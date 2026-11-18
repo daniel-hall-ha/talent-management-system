@@ -9,6 +9,7 @@ export type TrackerRow = {
   talent: string;
   deliverable: string;
   submissionDate: string;
+  publishingDate: string;
   status: 'Pending' | 'Done';
   links: string[];
 };

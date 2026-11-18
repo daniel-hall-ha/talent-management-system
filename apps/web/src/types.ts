@@ -11,7 +11,7 @@ export type Category = 'Livestream' | 'Highlight' | 'Short Video' | 'Others';
 export const categoryOptions: Category[] = ['Livestream', 'Highlight', 'Short Video', 'Others'];
 
 export type Talent = { id: string; name: string };
-export type TalentAssignment = { id?: string; deliverable: Category | ''; submissionDate: string; status?: 'Pending' | 'Done'; links?: string[] };
+export type TalentAssignment = { id?: string; deliverable: Category | ''; submissionDate: string; publishingDate?: string; status?: 'Pending' | 'Done'; links?: string[] };
 export type CdKeys = { giveaway: string[]; talents: Record<string, string[]> };
 
 export type Event = {

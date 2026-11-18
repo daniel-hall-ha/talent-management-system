@@ -30,6 +30,7 @@ model User {
   roleId       String
   role         Role     @relation(fields: [roleId], references: [id])
   assignedEvents Event[] @relation("EventTalents")
+  deliverables Deliverable[]
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 }
@@ -43,14 +44,31 @@ model Event {
   endDate        String
   keyPoints      String[]
   categories     String[] @default([])
-  talentDeliverables Json @default("{}")
-  talentSubmissionDates Json @default("{}")
-  talentAssignments Json @default("{}")
   details        String   @default("")
   cdKeysCipher   String?
   talents        User[]   @relation("EventTalents")
+  deliverables   Deliverable[]
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
+}
+
+model Deliverable {
+  id             String   @id @default(cuid())
+  eventId        String
+  talentId       String
+  type           String
+  submissionDate String   @default("")
+  publishingDate String   @default("")
+  status         String   @default("Pending")
+  links          String[] @default([])
+  sortOrder      Int      @default(0)
+  event          Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  talent         User     @relation(fields: [talentId], references: [id], onDelete: Restrict)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@index([eventId, talentId, sortOrder])
+  @@index([talentId])
 }
 
 model MarketTalent {

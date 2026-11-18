@@ -82,9 +82,10 @@ async function readImport(file: File, talents: Talent[], canEditKeys: boolean): 
         const assignments: TalentAssignment[] = [];
         for (const item of value) {
           if (!item || typeof item !== 'object' || !categoryOptions.includes(item.deliverable as Category) ||
-            (item.submissionDate && (typeof item.submissionDate !== 'string' || !validDate(item.submissionDate) || item.submissionDate < startDate || item.submissionDate > endDate))) {
-            errors.push(`Invalid deliverable or submission date for ${identifier}`);
-          } else assignments.push({ deliverable: item.deliverable as Category, submissionDate: item.submissionDate || '' });
+            (item.submissionDate && (typeof item.submissionDate !== 'string' || !validDate(item.submissionDate) || item.submissionDate < startDate || item.submissionDate > endDate)) ||
+            (item.publishingDate && (typeof item.publishingDate !== 'string' || !validDate(item.publishingDate)))) {
+            errors.push(`Invalid deliverable or date for ${identifier}`);
+          } else assignments.push({ deliverable: item.deliverable as Category, submissionDate: item.submissionDate || '', publishingDate: item.publishingDate || '' });
         }
         talentAssignments[talent.id] = assignments;
       }
