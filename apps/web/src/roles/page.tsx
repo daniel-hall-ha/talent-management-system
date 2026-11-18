@@ -48,7 +48,7 @@ export function RolesPage({ can }: { can: (permission: string) => boolean }) {
       {can('ROLE_ADD') && <button className="primary" onClick={() => { setEditing(null); setFormOpen(true); }}><Plus size={17} /> New Role</button>}
     </div></div>
     <ErrorBanner error={formOpen ? '' : error} onDismiss={() => setError('')} />
-    <div className="panel"><table><thead><tr><th>Role</th><th>Description</th><th>Users</th><th>Account</th><th>Permissions</th><th></th></tr></thead><tbody>
+    <div className="panel"><table className="data-table"><thead><tr><th>Role</th><th>Description</th><th>Users</th><th>Account</th><th>Permissions</th><th></th></tr></thead><tbody>
       {roles.map(role => <tr key={role.id}>
         <td><b>{role.name}</b>{role.system && <span className="system-tag">System</span>}</td>
         <td>{role.description || '—'}</td><td>{role._count.users}</td><td>{role.createAccount ? 'Yes' : 'No'}</td><td>{role.permissions.length} granted</td>

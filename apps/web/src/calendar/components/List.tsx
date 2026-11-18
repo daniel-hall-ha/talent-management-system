@@ -4,7 +4,7 @@ type Props = { events: Event[]; onSelect: (event: Event) => void };
 
 export function List({ events, onSelect }: Props) {
   return <div className="event-list-scroll panel">
-    <table className="event-list">
+    <table className="data-table">
       <thead><tr><th>Title</th><th>Description</th><th>Start date</th><th>End date</th><th>Assigned talents</th></tr></thead>
       <tbody>{events.length ? events.map(event => <tr key={event.id}>
         <td><button className="event-list-title" onClick={() => onSelect(event)}><span className="event-list-dot" style={{ background: event.color }} />{event.title}</button></td>

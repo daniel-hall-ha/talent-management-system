@@ -39,13 +39,14 @@ export function CalendarPage({ can, navigate }: { can: (permission: string) => b
   }
 
   return <>
-    <div className="page-head"><h1>SOW Calendar</h1><div className="head-actions">
+    <div className="page-head calendar-page-head"><h1>SOW Calendar</h1>
       <div className="month-controls">
         <button aria-label="Previous month" onClick={() => changeMonth(-1)}><ChevronLeft size={18} /></button>
         <select aria-label="Month" value={month} onChange={event => setMonth(Number(event.target.value))}>{months.map((name, index) => <option value={index} key={name}>{name}</option>)}</select>
         <select aria-label="Year" value={year} onChange={event => setYear(Number(event.target.value))}>{Array.from({ length: 11 }, (_, index) => today.getFullYear() - 5 + index).map(value => <option key={value}>{value}</option>)}</select>
         <button aria-label="Next month" onClick={() => changeMonth(1)}><ChevronRight size={18} /></button>
       </div>
+      <div className="head-actions">
       <div className="segmented"><button className={view === 'grid' ? 'chosen' : ''} onClick={() => setView('grid')}><Grid2X2 size={16} /> Grid View</button><button className={view === 'column' ? 'chosen' : ''} onClick={() => setView('column')}><Columns3 size={16} /> Column View</button><button className={view === 'list' ? 'chosen' : ''} onClick={() => setView('list')}><ListIcon size={16} /> List View</button></div>
       {can('SOW_ADD') && <div className="split-create" ref={importMenuRef}><button className="primary split-create-main" onClick={() => navigate('/add')}><Plus size={17} /> New Event</button><button className="primary split-create-arrow" aria-label="More event actions" aria-expanded={importMenuOpen} onClick={() => setImportMenuOpen(open => !open)}><ChevronDown size={17} /></button>{importMenuOpen && <div className="split-create-menu"><button onClick={() => { setImportMenuOpen(false); navigate('/import'); }}>Import Events</button></div>}</div>}
     </div></div>

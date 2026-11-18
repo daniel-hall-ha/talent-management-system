@@ -38,7 +38,7 @@ export function RoleForm({ role, onClose, onSave, busy, error }: Props) {
       <label>Description<textarea rows={2} value={description} onChange={event => setDescription(event.target.value)} /></label>
       <label className="role-account-toggle"><input type="checkbox" checked={createAccount} onChange={event => setCreateAccount(event.target.checked)} /> Create New Account</label>
       <h3>Role access</h3>
-      <div className="permission-wrap"><table className="permission-table"><thead><tr><th>Menu</th>{columns.map(column => <th key={column.key}>{column.label}</th>)}</tr></thead><tbody>
+      <div className="permission-wrap"><table className="data-table"><thead><tr><th>Menu</th>{columns.map(column => <th key={column.key}>{column.label}</th>)}</tr></thead><tbody>
         {sections.map(section => <tr key={section.label}><td>{section.label}</td>{columns.map(column => {
           const permission = (section.access as Partial<Record<typeof column.key, string>>)[column.key];
           const requiresViewAll = section.label === 'SOW Calendar' && (column.key === 'edit' || column.key === 'delete');
