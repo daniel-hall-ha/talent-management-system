@@ -43,16 +43,18 @@ export function TalentAssignments({ talents, assignments, onChange, startDate, e
           <div role="cell"><SelectDropdown
             label={`Submission date ${index + 1} for ${talent.name}`}
             value={row.submissionDate}
-            placeholder="Select date"
-            disabled={!row.deliverable || !dates.length}
+            placeholder="Select submission date"
+            disabled={!dates.length}
+            portal
             options={[{ value: '', label: 'No date' }, ...(row.submissionDate && !dates.includes(row.submissionDate) ? [{ value: row.submissionDate, label: `${row.submissionDate} (outside event dates)` }] : []), ...dates.map(date => ({ value: date, label: date }))]}
             onChange={value => update(talent.id, rows.map((item, i) => i === index ? { ...item, submissionDate: value } : item))}
           /></div>
           <div role="cell"><SelectDropdown
             label={`Publishing date ${index + 1} for ${talent.name}`}
             value={row.publishingDate || ''}
-            placeholder="Select date"
-            disabled={!row.deliverable || !dates.length}
+            placeholder="Select publishing date"
+            disabled={!dates.length}
+            portal
             options={[{ value: '', label: 'No date' }, ...(row.publishingDate && !dates.includes(row.publishingDate) ? [{ value: row.publishingDate, label: `${row.publishingDate} (outside event dates)` }] : []), ...dates.map(date => ({ value: date, label: date }))]}
             onChange={value => update(talent.id, rows.map((item, i) => i === index ? { ...item, publishingDate: value } : item))}
           /></div>

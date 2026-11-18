@@ -151,6 +151,10 @@
 .tracker-table-wrap .data-table{min-width:1300px}
 .event-list-clickable{cursor:pointer}
 .event-list-clickable:hover,.event-list-clickable:focus-within{background:#f8f9ff}
+.event-list-clickable td{padding:0!important}
+.event-list-clickable .event-list-cell{display:flex;align-items:center;width:100%;min-height:72px;padding:14px 16px;border:0;background:transparent;color:inherit;font-size:inherit;font-weight:inherit;line-height:inherit;text-align:left;cursor:pointer}
+.event-list-clickable .event-list-title{color:#283650;font-weight:700}
+.event-list-clickable .event-list-cell:focus-visible{outline:2px solid #6674cf;outline-offset:-2px}
 @media(max-width:700px){.talent-assignment-line{grid-template-columns:minmax(0,1fr) minmax(0,1fr) 40px}.talent-assignment-line>[role=cell]:nth-child(4){grid-column:1/3}.talent-assignment-line>.talent-assignment-action{grid-column:3;grid-row:2/4}}
 .topbar-actions{display:flex;align-items:center;gap:14px;flex:none}
 .install-app-button{display:inline-flex;align-items:center;gap:7px;padding:8px 11px;border:1px solid #dce1ec;border-radius:7px;background:#fff;color:#5f6dcc;font-size:12px;font-weight:700;white-space:nowrap}
