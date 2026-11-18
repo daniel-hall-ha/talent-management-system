@@ -146,3 +146,7 @@
 .market-filter label{display:block;width:min(440px,100%);color:#4d5a70;font-size:12px;font-weight:700}
 .market-filter .market-tag-picker{margin-top:6px;font-weight:400}
 .market-filter .market-tag-picker input{flex:1 1 100px;min-width:100px;height:25px;border:0;outline:0;background:transparent;font-size:12px;color:#34425b}
+.topbar-actions{display:flex;align-items:center;gap:14px;flex:none}
+.install-app-button{display:inline-flex;align-items:center;gap:7px;padding:8px 11px;border:1px solid #dce1ec;border-radius:7px;background:#fff;color:#5f6dcc;font-size:12px;font-weight:700;white-space:nowrap}
+.install-app-button:hover{background:#eef0fc}
+@media(max-width:680px){.topbar .topbar-actions{margin-left:auto;gap:8px}.install-app-button{padding:7px}.install-app-button span{display:none}}
