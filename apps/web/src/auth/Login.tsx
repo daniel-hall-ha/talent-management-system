@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { CalendarDays } from 'lucide-react';
-import { api } from '../lib/api';
+import { loginWithRetry } from './loginWithRetry';
 import type { Me } from '../types';
 
 export function Login({ onLogin, ready }: { onLogin: (me: Me) => void; ready: boolean }) {
@@ -15,8 +15,7 @@ export function Login({ onLogin, ready }: { onLogin: (me: Me) => void; ready: bo
     setBusy(true);
     setError('');
     try {
-      await api('/login', { method: 'POST', body: JSON.stringify({ loginId, password }) });
-      onLogin(await api<Me>('/me'));
+      onLogin(await loginWithRetry(loginId, password));
     } catch (cause) {
       setError((cause as Error).message);
     } finally {

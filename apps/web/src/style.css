@@ -163,5 +163,6 @@
 
 /* Continuous connection strip directly beneath the navigation. */
 .service-status{display:block;width:100%;margin:0;border:0;border-radius:0;padding:3px 16px;background:#facc15;color:#000;font-size:9px;line-height:12px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.service-status-ready{background:#86efac}
 .service-status+.login-page{min-height:calc(100vh - 93px)}
+
+.topbar+.login-page{min-height:calc(100vh - 75px)}

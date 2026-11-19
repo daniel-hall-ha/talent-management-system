@@ -4,11 +4,17 @@ import type { Me } from './types';
 import { Login } from './auth/Login';
 import { Routes } from './routes';
 import { ServiceStatus } from './components/ServiceStatus';
+import { wakeBackend } from './lib/wakeBackend';
 
 export function App() {
   const [me, setMe] = useState<Me | null>(null);
   const [ready, setReady] = useState(false);
   useEffect(() => {
+    const wakeController = new AbortController();
+    const wakeTimeout = window.setTimeout(() => wakeController.abort(), 120_000);
+    if (import.meta.env.PROD) {
+      void wakeBackend(wakeController.signal).catch(() => {}).finally(() => window.clearTimeout(wakeTimeout));
+    } else window.clearTimeout(wakeTimeout);
     let stopped = false;
     let retry: number | undefined;
     let controller: AbortController;
@@ -28,7 +34,7 @@ export function App() {
       }
     }
     void connect();
-    return () => { stopped = true; controller?.abort(); window.clearTimeout(retry); };
+    return () => { wakeController.abort(); window.clearTimeout(wakeTimeout); stopped = true; controller?.abort(); window.clearTimeout(retry); };
   }, []);
 
   async function logout() {

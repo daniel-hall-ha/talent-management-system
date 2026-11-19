@@ -13,6 +13,7 @@ export async function api<T>(path: string, init?: RequestInit): Promise<T> {
   } catch {
     throw new Error('Cannot connect to the API. Check the web service and backend connection.');
   }
+  if (response.status === 502) throw new ApiError('Backend is starting. Please try again shortly.', 502);
   const contentType = response.headers.get('content-type') || '';
   if (!contentType.includes('application/json')) {
     throw new Error(response.status === 404
