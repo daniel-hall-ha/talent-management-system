@@ -1,3 +1,7 @@
+export class ApiError extends Error {
+  constructor(message: string, public status: number) { super(message); }
+}
+
 export async function api<T>(path: string, init?: RequestInit): Promise<T> {
   let response: Response;
   try {
@@ -16,6 +20,6 @@ export async function api<T>(path: string, init?: RequestInit): Promise<T> {
       : `API returned an unexpected response (HTTP ${response.status}).`);
   }
   const data = await response.json();
-  if (!response.ok) throw new Error(data.error || 'Request failed');
+  if (!response.ok) throw new ApiError(data.error || 'Request failed', response.status);
   return data as T;
 }

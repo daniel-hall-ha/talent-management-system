@@ -2,6 +2,7 @@ import { useEffect, useState, type ReactNode } from 'react';
 import { CalendarDays, ClipboardList, LogOut, ShieldCheck, UsersRound, Database, Menu, X } from 'lucide-react';
 import type { Me } from '../types';
 import type { RoutePath } from '../routes';
+import { ServiceStatus } from '../components/ServiceStatus';
 import { InstallAppButton } from './InstallAppButton';
 
 const menu = [
@@ -40,6 +41,6 @@ export function AppShell({ me, path, navigate, onLogout, children }: Props) {
       )}</nav>
       <div className="sidebar-bottom"><div className="avatar">{me.name.slice(0, 1).toUpperCase()}</div><div className="identity"><strong>{me.name}</strong><small>{me.role}</small></div><button className="icon-button" aria-label="Log out" onClick={onLogout}><LogOut size={18} /></button></div>
     </aside>
-    <main className="main"><header className="topbar"><button className="icon-button sidebar-toggle" aria-label="Open navigation menu" aria-controls="app-sidebar" aria-expanded={drawerOpen} onClick={() => setDrawerOpen(true)}><Menu size={21} /></button><div className="crumb">Workspace <span>/</span> {title}</div><div className="topbar-actions"><InstallAppButton /><div className="top-user">{me.name.slice(0, 1).toUpperCase()}</div></div></header><div className="content">{children}</div></main>
+    <main className="main"><header className="topbar"><button className="icon-button sidebar-toggle" aria-label="Open navigation menu" aria-controls="app-sidebar" aria-expanded={drawerOpen} onClick={() => setDrawerOpen(true)}><Menu size={21} /></button><div className="crumb">Workspace <span>/</span> {title}</div><div className="topbar-actions"><InstallAppButton /><div className="top-user">{me.name.slice(0, 1).toUpperCase()}</div></div></header><ServiceStatus ready /><div className="content">{children}</div></main>
   </div>;
 }
