@@ -160,9 +160,3 @@
 .install-app-button{display:inline-flex;align-items:center;gap:7px;padding:8px 11px;border:1px solid #dce1ec;border-radius:7px;background:#fff;color:#5f6dcc;font-size:12px;font-weight:700;white-space:nowrap}
 .install-app-button:hover{background:#eef0fc}
 @media(max-width:680px){.topbar .topbar-actions{margin-left:auto;gap:8px}.install-app-button{padding:7px}.install-app-button span{display:none}}
-
-/* Continuous connection strip directly beneath the navigation. */
-.service-status{display:block;width:100%;margin:0;border:0;border-radius:0;padding:3px 16px;background:#facc15;color:#000;font-size:9px;line-height:12px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.service-status+.login-page{min-height:calc(100vh - 93px)}
-
-.topbar+.login-page{min-height:calc(100vh - 75px)}

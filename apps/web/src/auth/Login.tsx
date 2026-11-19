@@ -3,7 +3,7 @@ import { CalendarDays } from 'lucide-react';
 import { loginWithRetry } from './loginWithRetry';
 import type { Me } from '../types';
 
-export function Login({ onLogin, ready }: { onLogin: (me: Me) => void; ready: boolean }) {
+export function Login({ onLogin }: { onLogin: (me: Me) => void }) {
   const [loginId, setLoginId] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
@@ -11,7 +11,7 @@ export function Login({ onLogin, ready }: { onLogin: (me: Me) => void; ready: bo
 
   async function submit(event: React.FormEvent) {
     event.preventDefault();
-    if (!ready || busy) return;
+    if (busy) return;
     setBusy(true);
     setError('');
     try {
@@ -30,7 +30,7 @@ export function Login({ onLogin, ready }: { onLogin: (me: Me) => void; ready: bo
       <label>Login ID<input type="text" required autoComplete="username" value={loginId} onChange={event => setLoginId(event.target.value)} placeholder="Enter your login ID" /></label>
       <label>Password<input type="password" required value={password} onChange={event => setPassword(event.target.value)} placeholder="Enter your password" /></label>
       {error && <div className="form-error">{error}</div>}
-      <button className="primary full" disabled={busy || !ready}>{!ready ? 'Connecting…' : busy ? 'Signing in…' : 'Sign in'}</button>
+      <button className="primary full" disabled={busy}>{busy ? 'Signing in…' : 'Sign in'}</button>
     </form>
   </div></div>;
 }

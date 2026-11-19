@@ -3,7 +3,6 @@ import { api, ApiError } from './lib/api';
 import type { Me } from './types';
 import { Login } from './auth/Login';
 import { Routes } from './routes';
-import { ServiceStatus } from './components/ServiceStatus';
 import { wakeBackend } from './lib/wakeBackend';
 
 export function App() {
@@ -42,10 +41,7 @@ export function App() {
     setMe(null);
   }
 
-  if (!me) return <>
-    <header className="topbar"><div className="crumb">Talent Management</div></header>
-    <ServiceStatus ready={ready} />
-    <Login onLogin={setMe} ready={ready} />
-  </>;
+  if (!ready) return <div className="loading" role="status">Loading…</div>;
+  if (!me) return <Login onLogin={setMe} />;
   return <Routes me={me} onLogout={logout} />;
 }
